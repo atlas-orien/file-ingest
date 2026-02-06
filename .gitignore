@@ -1,0 +1,12 @@
+/target
+
+**/.DS_Store
+
+.claude/
+# PDF examples
+example*.pdf
+example.docx
+test_files/
+
+.serena/
+output/
