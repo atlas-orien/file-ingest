@@ -17,18 +17,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// 主文档流水线
+#[derive(Default)]
 pub struct DocumentPipeline {
     ocr_engine: Option<Arc<dyn OcrEngine>>,
     vision_engine: Option<Arc<dyn VisionEngine>>,
-}
-
-impl Default for DocumentPipeline {
-    fn default() -> Self {
-        Self {
-            ocr_engine: None,
-            vision_engine: None,
-        }
-    }
 }
 
 impl DocumentPipeline {
@@ -126,7 +118,7 @@ impl DocumentPipeline {
             ImageStrategy::Base64 => {
                 let mime = detected_format
                     .as_deref()
-                    .or_else(|| image.mime_type.as_deref())
+                    .or(image.mime_type.as_deref())
                     .unwrap_or("image/png");
                 let data_url = format!(
                     "data:{};base64,{}",
@@ -154,7 +146,7 @@ impl DocumentPipeline {
                     .or_else(|| detected_format.clone());
                 let extension = ext
                     .as_deref()
-                    .map(|raw| raw.split('/').last().unwrap_or(raw))
+                    .map(|raw| raw.split('/').next_back().unwrap_or(raw))
                     .unwrap_or("bin");
                 let file_name =
                     format!("{}_{}_{}.{}", source_stem, base_name, index + 1, extension);

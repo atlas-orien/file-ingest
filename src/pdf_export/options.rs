@@ -1,9 +1,10 @@
 //! PDF 导出配置选项
 
 /// PDF 页面大小
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum PageSize {
     /// A4 (210 x 297 mm)
+    #[default]
     A4,
     /// Letter (8.5 x 11 inches)
     Letter,
@@ -11,12 +12,6 @@ pub enum PageSize {
     Legal,
     /// 自定义尺寸 (宽度, 高度) 单位: mm
     Custom(f32, f32),
-}
-
-impl Default for PageSize {
-    fn default() -> Self {
-        Self::A4
-    }
 }
 
 impl PageSize {

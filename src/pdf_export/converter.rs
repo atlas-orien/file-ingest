@@ -43,7 +43,7 @@ fn convert_text_to_pdf(text: &str, output_path: &Path, options: &PdfExportOption
 
     // 创建 PDF 文档
     let title = options.title.as_deref().unwrap_or("Document");
-    let (doc, page1, layer1) = PdfDocument::new(title, Mm(page_width), Mm(page_height), "Layer 1");
+    let mut doc = PdfDocument::new(title);
 
     // 设置元数据
     if options.include_metadata {
@@ -51,15 +51,9 @@ fn convert_text_to_pdf(text: &str, output_path: &Path, options: &PdfExportOption
         // doc.set_author(options.author.as_deref().unwrap_or(""));
     }
 
-    // 获取当前图层
-    let current_layer = doc.get_page(page1).get_layer(layer1);
-
-    // 加载内置字体
-    let font = doc.add_builtin_font(BuiltinFont::Helvetica)?;
-
     // 计算可用的文本区域
-    let text_width = page_width - options.margin_left - options.margin_right;
-    let text_height = page_height - options.margin_top - options.margin_bottom;
+    let _text_width = page_width - options.margin_left - options.margin_right;
+    let _text_height = page_height - options.margin_top - options.margin_bottom;
 
     // 起始位置（从上往下）
     let mut current_y = page_height - options.margin_top;
@@ -67,6 +61,18 @@ fn convert_text_to_pdf(text: &str, output_path: &Path, options: &PdfExportOption
 
     // 行高
     let line_height = options.font_size * options.line_spacing * 0.352778; // pt to mm
+
+    let font = BuiltinFont::Helvetica;
+    let mut ops = vec![
+        Op::StartTextSection,
+        Op::SetFont {
+            font: PdfFontHandle::Builtin(font),
+            size: Pt(options.font_size),
+        },
+        Op::SetLineHeight {
+            lh: Pt(options.font_size * options.line_spacing),
+        },
+    ];
 
     // 逐行渲染文本
     for line in text.lines() {
@@ -77,16 +83,30 @@ fn convert_text_to_pdf(text: &str, output_path: &Path, options: &PdfExportOption
         }
 
         // 渲染文本
-        current_layer.use_text(line, options.font_size, Mm(current_x), Mm(current_y), &font);
+        ops.push(Op::SetTextCursor {
+            pos: Point::new(Mm(current_x), Mm(current_y)),
+        });
+        ops.push(Op::ShowText {
+            items: vec![TextItem::Text(line.to_string())],
+        });
 
         current_y -= line_height;
     }
+    ops.push(Op::EndTextSection);
+
+    doc.pages
+        .push(PdfPage::new(Mm(page_width), Mm(page_height), ops));
 
     // 保存 PDF
     let file = File::create(output_path)?;
     let mut writer = BufWriter::new(file);
-    doc.save(&mut writer)
-        .map_err(|e| IngestError::Docx(format!("PDF save failed: {}", e)))?;
+    let mut warnings = Vec::new();
+    doc.save_writer(&mut writer, &PdfSaveOptions::default(), &mut warnings);
+    if !warnings.is_empty() {
+        return Err(IngestError::PdfGeneration(format!(
+            "PDF save completed with warnings: {warnings:?}"
+        )));
+    }
 
     Ok(())
 }

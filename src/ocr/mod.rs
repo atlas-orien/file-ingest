@@ -7,6 +7,7 @@ pub trait OcrEngine: Send + Sync {
 }
 
 /// 默认的空实现，方便在未配置 OCR 时仍能正常运行
+#[allow(dead_code)]
 pub struct NoopOcrEngine;
 
 impl OcrEngine for NoopOcrEngine {

@@ -6,18 +6,13 @@ use pdfium_render::prelude::*;
 use std::path::Path;
 
 /// 图片输出格式
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum ImageFormat {
     /// PNG 格式
+    #[default]
     Png,
     /// JPEG 格式
     Jpeg,
-}
-
-impl Default for ImageFormat {
-    fn default() -> Self {
-        Self::Png
-    }
 }
 
 /// PDF 转图片选项
@@ -133,7 +128,7 @@ pub fn pdf_to_images<P: AsRef<Path>>(
 
     // 转换每一页
     for page_num in pages_to_convert {
-        let page_index = (page_num - 1) as u16;
+        let page_index = (page_num - 1) as i32;
         let page = document
             .pages()
             .get(page_index)

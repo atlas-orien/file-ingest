@@ -1,22 +1,17 @@
 use std::path::PathBuf;
 
 /// 图片嵌入策略
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum ImageStrategy {
     /// 嵌入为 base64 data URL
     Base64,
     /// 保存到指定目录并使用相对路径引用
     SaveToDir(PathBuf),
     /// 仅保留图片占位符，不嵌入实际内容
+    #[default]
     Placeholder,
     /// 跳过所有图片
     Skip,
-}
-
-impl Default for ImageStrategy {
-    fn default() -> Self {
-        Self::Placeholder
-    }
 }
 
 /// Markdown 转换选项

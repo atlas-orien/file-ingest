@@ -107,10 +107,8 @@ fn parse_table<R: BufRead>(reader: &mut XmlReader<R>) -> Result<TableData> {
                     in_cell = true;
                     current_cell.clear();
                 }
-                b"w:p" => {
-                    if in_cell && !current_cell.is_empty() && !current_cell.ends_with('\n') {
-                        current_cell.push('\n');
-                    }
+                b"w:p" if in_cell && !current_cell.is_empty() && !current_cell.ends_with('\n') => {
+                    current_cell.push('\n');
                 }
                 _ => {}
             },

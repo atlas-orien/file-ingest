@@ -7,21 +7,7 @@ use crate::model::{FileData, IngestOptions};
 /// 附加文本内容到结果，并生成摘录
 pub fn attach_text(result: &mut FileData, text: String, options: &IngestOptions) {
     let limit = options.max_text_length.unwrap_or(usize::MAX);
-    let mut excerpt = String::new();
-    let mut count = 0usize;
-
-    for ch in text.chars() {
-        if count >= limit {
-            excerpt.push('…');
-            break;
-        }
-        excerpt.push(ch);
-        count += 1;
-    }
-
-    if count < limit && !excerpt.ends_with('…') {
-        excerpt = text.clone();
-    }
+    let excerpt = truncate_text(&text, Some(limit));
 
     result.text = Some(text);
     result.text_excerpt = Some(excerpt);
@@ -32,14 +18,12 @@ pub fn truncate_text(text: &str, max_length: Option<usize>) -> String {
     match max_length {
         Some(max) if text.len() > max => {
             let mut truncated = String::new();
-            let mut count = 0;
-            for ch in text.chars() {
+            for (count, ch) in text.chars().enumerate() {
                 if count >= max {
                     truncated.push('…');
                     break;
                 }
                 truncated.push(ch);
-                count += 1;
             }
             truncated
         }

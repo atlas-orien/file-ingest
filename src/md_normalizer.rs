@@ -409,17 +409,17 @@ fn should_merge_line(current: &str, next: &str) -> bool {
     }
 
     let last = last_non_space_char(current_trim);
-    if let Some(ch) = last {
-        if is_terminal_punct(ch) {
-            return false;
-        }
+    if let Some(ch) = last
+        && is_terminal_punct(ch)
+    {
+        return false;
     }
 
     let next_first = next_trim.chars().next();
-    if let Some(ch) = next_first {
-        if ch.is_ascii_uppercase() {
-            return false;
-        }
+    if let Some(ch) = next_first
+        && ch.is_ascii_uppercase()
+    {
+        return false;
     }
 
     true

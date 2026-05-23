@@ -38,8 +38,10 @@ fn image_pipeline_saves_assets() {
         ImageBuffer::from_pixel(16, 16, Rgba([255, 0, 0, 255]));
     buffer.save(&image_path).unwrap();
 
-    let mut options = Options::default();
-    options.image_strategy = ImageStrategy::SaveToDir(image_dir.clone());
+    let options = Options {
+        image_strategy: ImageStrategy::SaveToDir(image_dir.clone()),
+        ..Default::default()
+    };
 
     let document = to_document_with_options(&image_path, &options).unwrap();
 

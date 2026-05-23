@@ -7,6 +7,7 @@ pub trait VisionEngine: Send + Sync {
 }
 
 /// 默认空实现
+#[allow(dead_code)]
 pub struct NoopVisionEngine;
 
 impl VisionEngine for NoopVisionEngine {

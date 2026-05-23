@@ -32,7 +32,7 @@ pub enum IngestError {
     Image(#[from] image::ImageError),
 
     #[error("pdf generation error: {0}")]
-    PdfGeneration(#[from] printpdf::Error),
+    PdfGeneration(String),
 }
 
 pub type Result<T, E = IngestError> = core::result::Result<T, E>;

@@ -34,7 +34,7 @@ pub fn render_document(document: &Document, options: &Options) -> String {
     for block in &document.blocks {
         match block {
             Block::Heading { level, text } => {
-                let lvl = (*level).max(1).min(6) as usize;
+                let lvl = (*level).clamp(1, 6) as usize;
                 let hashes = "#".repeat(lvl);
                 let _ = writeln!(markdown, "{} {}\n", hashes, text);
             }
@@ -67,7 +67,7 @@ fn render_image_block(image: &ImageBlock) -> String {
         if let (Some(w), Some(h)) = (image.width, image.height) {
             let _ = writeln!(md, "- Dimensions: {}x{}", w, h);
         }
-        md.push_str("\n");
+        md.push('\n');
     }
 
     if let Some(vision) = &image.vision_desc {
@@ -105,7 +105,7 @@ fn table_to_markdown(table: &TableData, options: &Options) -> String {
     md.push_str(&table.headers.join(" | "));
     md.push_str(" |\n");
 
-    md.push_str("|");
+    md.push('|');
     for _ in &table.headers {
         if options.align_tables {
             md.push_str(" --- |");
@@ -113,7 +113,7 @@ fn table_to_markdown(table: &TableData, options: &Options) -> String {
             md.push_str("---|");
         }
     }
-    md.push_str("\n");
+    md.push('\n');
 
     for row in &table.rows {
         md.push_str("| ");
@@ -121,7 +121,7 @@ fn table_to_markdown(table: &TableData, options: &Options) -> String {
         md.push_str(" |\n");
     }
 
-    md.push_str("\n");
+    md.push('\n');
     md
 }
 

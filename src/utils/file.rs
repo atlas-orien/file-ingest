@@ -20,14 +20,14 @@ pub fn extract_metadata(result: &mut FileData, path: &Path, bytes: &[u8]) {
         .metadata
         .insert("file_size_bytes".into(), Value::from(bytes.len() as u64));
 
-    if let Ok(meta) = fs::metadata(path) {
-        if let Ok(modified) = meta.modified() {
-            let dt: OffsetDateTime = modified.into();
-            if let Ok(formatted) = dt.format(&Rfc3339) {
-                result
-                    .metadata
-                    .insert("modified_at".into(), Value::from(formatted));
-            }
+    if let Ok(meta) = fs::metadata(path)
+        && let Ok(modified) = meta.modified()
+    {
+        let dt: OffsetDateTime = modified.into();
+        if let Ok(formatted) = dt.format(&Rfc3339) {
+            result
+                .metadata
+                .insert("modified_at".into(), Value::from(formatted));
         }
     }
 }

@@ -28,7 +28,7 @@ use clap::{Parser, Subcommand};
 use file_ingest::pdf_export::{ImageFormat, PdfToImageOptions, pdf_to_images, save_images};
 use file_ingest::pdf_export::{PageSize, PdfExportOptions, docx_to_pdf, markdown_to_pdf};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 #[derive(Parser)]
@@ -227,10 +227,10 @@ fn parse_page_size(size_str: &str) -> PageSize {
         "legal" => PageSize::Legal,
         custom => {
             // Parse custom size like "200x300"
-            if let Some((width, height)) = custom.split_once('x') {
-                if let (Ok(w), Ok(h)) = (width.parse::<f32>(), height.parse::<f32>()) {
-                    return PageSize::Custom(w, h);
-                }
+            if let Some((width, height)) = custom.split_once('x')
+                && let (Ok(w), Ok(h)) = (width.parse::<f32>(), height.parse::<f32>())
+            {
+                return PageSize::Custom(w, h);
             }
             eprintln!("⚠️  Invalid page size '{}', using A4", size_str);
             PageSize::A4
@@ -433,7 +433,7 @@ fn print_image_options(options: &PdfToImageOptions, cli_options: &ImageOptions) 
 }
 
 #[cfg(feature = "pdf-to-image")]
-fn print_image_success(files: &[String], output_dir: &PathBuf) {
+fn print_image_success(files: &[String], output_dir: &Path) {
     println!("\n✅ Conversion successful!");
     println!("   📦 Generated {} image(s)", files.len());
     println!("   📍 Location: {}", output_dir.display());
