@@ -1,92 +1,78 @@
+use crate::core::{Block, BlockContent, BlockRole, Cell, RangeU32, SourceLocation, Table};
 use crate::error::Result;
-use crate::model::{EmbeddedImage, FileData, IngestOptions, TableData};
+use crate::parser::ParsedContent;
 use calamine::{Data, Reader, open_workbook_auto_from_rs};
 use serde_json::Value;
-use std::io::{Cursor, Read};
-use std::path::Path;
-use zip::read::ZipArchive;
+use std::collections::HashMap;
+use std::io::Cursor;
 
-pub fn parse(result: &mut FileData, bytes: &[u8], options: &IngestOptions) -> Result<()> {
-    if options.extract_tables {
-        let tables = extract_tables(bytes)?;
-        let sheet_names: Vec<_> = tables.iter().filter_map(|t| t.name.clone()).collect();
-
-        result.tables = tables;
-
-        if !sheet_names.is_empty() {
-            result
-                .metadata
-                .insert("sheet_names".into(), Value::from(sheet_names));
-        }
-    }
-
-    if options.extract_images {
-        let images = extract_images(bytes)?;
-        result.images.extend(images);
-    }
-    Ok(())
-}
-
-fn extract_tables(bytes: &[u8]) -> Result<Vec<TableData>> {
+pub fn parse(bytes: &[u8]) -> Result<ParsedContent> {
     let cursor = Cursor::new(bytes.to_vec());
     let mut workbook = open_workbook_auto_from_rs(cursor)?;
-    let mut tables = Vec::new();
-
     let sheet_names = workbook.sheet_names().to_owned();
-    for sheet_name in sheet_names {
-        if let Ok(range) = workbook.worksheet_range(&sheet_name) {
+    let mut metadata = HashMap::new();
+    let mut blocks = Vec::new();
+
+    metadata.insert("sheet_names".into(), Value::from(sheet_names.clone()));
+
+    for (sheet_index, sheet_name) in sheet_names.iter().enumerate() {
+        if let Ok(range) = workbook.worksheet_range(sheet_name) {
             let mut rows_iter = range.rows();
-            let mut headers: Vec<String> = Vec::new();
-            let mut rows: Vec<Vec<String>> = Vec::new();
+            let mut headers = Vec::new();
+            let mut rows = Vec::new();
 
             if let Some(first_row) = rows_iter.next() {
-                headers = first_row.iter().map(data_to_string).collect();
+                headers.push(
+                    first_row
+                        .iter()
+                        .enumerate()
+                        .map(|(col, value)| cell(value, 0, col))
+                        .collect(),
+                );
             }
 
-            for row in rows_iter {
-                rows.push(row.iter().map(data_to_string).collect());
+            for (row_index, row) in rows_iter.enumerate() {
+                rows.push(
+                    row.iter()
+                        .enumerate()
+                        .map(|(col, value)| cell(value, row_index + 1, col))
+                        .collect(),
+                );
             }
 
-            tables.push(TableData {
-                name: Some(sheet_name),
+            let table = Table {
+                name: Some(sheet_name.clone()),
                 headers,
                 rows,
-            });
+                ..Default::default()
+            };
+
+            let source = SourceLocation {
+                sheet: Some(sheet_name.clone()),
+                row_range: Some(RangeU32::new(0, range.height().saturating_sub(1) as u32)),
+                col_range: Some(RangeU32::new(0, range.width().saturating_sub(1) as u32)),
+                ..Default::default()
+            };
+
+            blocks.push(
+                Block::new(
+                    format!("xlsx-sheet-{sheet_index}"),
+                    BlockRole::Table,
+                    BlockContent::Table { table },
+                )
+                .with_source(source),
+            );
         }
     }
 
-    Ok(tables)
+    Ok(ParsedContent { metadata, blocks })
 }
 
-fn extract_images(bytes: &[u8]) -> Result<Vec<EmbeddedImage>> {
-    let reader = Cursor::new(bytes);
-    let mut archive = ZipArchive::new(reader)?;
-    let mut images = Vec::new();
-
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i)?;
-        let name = file.name().to_string();
-        if !name.starts_with("xl/media/") {
-            continue;
-        }
-
-        let mut data = Vec::new();
-        file.read_to_end(&mut data)?;
-
-        let file_name = Path::new(&name)
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or("image.bin")
-            .to_string();
-
-        let mime = mime_guess::from_path(&file_name)
-            .first_raw()
-            .map(|m| m.to_string());
-
-        images.push(EmbeddedImage::new(file_name, data, mime));
-    }
-
-    Ok(images)
+fn cell(value: &Data, row: usize, col: usize) -> Cell {
+    let mut cell = Cell::text(data_to_string(value));
+    cell.row = Some(row as u32);
+    cell.col = Some(col as u32);
+    cell
 }
 
 fn data_to_string(value: &Data) -> String {

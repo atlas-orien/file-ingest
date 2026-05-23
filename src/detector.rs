@@ -1,9 +1,8 @@
-use crate::model::FileKind;
+use crate::core::FileKind;
 use std::path::Path;
 
-/// 基于文件路径及内容自动推断类型
-pub fn detect(path: &Path, bytes: &[u8]) -> FileKind {
-    // 首先尝试通过内容检测
+/// Detect file kind from bytes first, then from the source name extension.
+pub fn detect(source_name: &str, bytes: &[u8]) -> FileKind {
     if let Some(kind) = infer::get(bytes) {
         match kind.mime_type() {
             "application/pdf" => return FileKind::Pdf,
@@ -14,32 +13,22 @@ pub fn detect(path: &Path, bytes: &[u8]) -> FileKind {
                 return FileKind::Xlsx;
             }
             "text/csv" => return FileKind::Csv,
-            m if m.starts_with("image/") => return FileKind::Image,
             "text/plain" => return FileKind::Text,
             _ => {}
         }
     }
 
-    // 回退到文件扩展名检测
-    match path
+    match Path::new(source_name)
         .extension()
         .and_then(|s| s.to_str())
         .map(|s| s.to_lowercase())
     {
-        Some(ext) if matches!(ext.as_str(), "pdf") => FileKind::Pdf,
-        Some(ext) if matches!(ext.as_str(), "docx") => FileKind::Docx,
+        Some(ext) if ext == "pdf" => FileKind::Pdf,
+        Some(ext) if ext == "docx" => FileKind::Docx,
         Some(ext) if matches!(ext.as_str(), "xlsx" | "xlsm" | "xlsb" | "xls") => FileKind::Xlsx,
-        Some(ext) if matches!(ext.as_str(), "csv") => FileKind::Csv,
-        Some(ext) if matches!(ext.as_str(), "txt" | "md" | "json" | "log" | "yaml" | "yml") => {
+        Some(ext) if ext == "csv" => FileKind::Csv,
+        Some(ext) if matches!(ext.as_str(), "txt" | "json" | "log" | "yaml" | "yml") => {
             FileKind::Text
-        }
-        Some(ext)
-            if matches!(
-                ext.as_str(),
-                "png" | "jpg" | "jpeg" | "gif" | "bmp" | "webp" | "tiff"
-            ) =>
-        {
-            FileKind::Image
         }
         _ => FileKind::Unknown,
     }

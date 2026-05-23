@@ -1,26 +1,8 @@
+use crate::core::{Block, BlockContent, BlockRole, Cell, Table};
 use crate::error::Result;
-use crate::model::{FileData, IngestOptions, TableData};
-use crate::utils;
-use serde_json::Value;
+use crate::parser::ParsedContent;
 
-pub fn parse(result: &mut FileData, bytes: &[u8], options: &IngestOptions) -> Result<()> {
-    if options.extract_tables {
-        let table = extract_table(bytes)?;
-        result
-            .metadata
-            .insert("row_count".into(), Value::from(table.rows.len() as u64));
-        result.tables = vec![table];
-    }
-
-    if options.extract_text {
-        let text = String::from_utf8_lossy(bytes).to_string();
-        utils::attach_text(result, text, options);
-    }
-
-    Ok(())
-}
-
-fn extract_table(bytes: &[u8]) -> Result<TableData> {
+pub fn parse(bytes: &[u8]) -> Result<ParsedContent> {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(true)
         .from_reader(bytes);
@@ -28,18 +10,41 @@ fn extract_table(bytes: &[u8]) -> Result<TableData> {
     let headers = reader
         .headers()?
         .iter()
-        .map(|s| s.to_string())
+        .enumerate()
+        .map(|(col, text)| cell(text, 0, col))
         .collect::<Vec<_>>();
 
     let mut rows = Vec::new();
-    for record in reader.records() {
+    for (row_index, record) in reader.records().enumerate() {
         let record = record?;
-        rows.push(record.iter().map(|s| s.to_string()).collect());
+        rows.push(
+            record
+                .iter()
+                .enumerate()
+                .map(|(col, text)| cell(text, row_index + 1, col))
+                .collect(),
+        );
     }
 
-    Ok(TableData {
-        name: None,
-        headers,
+    let table = Table {
+        headers: vec![headers],
         rows,
+        ..Default::default()
+    };
+
+    Ok(ParsedContent {
+        blocks: vec![Block::new(
+            "csv-table-0",
+            BlockRole::Table,
+            BlockContent::Table { table },
+        )],
+        ..Default::default()
     })
+}
+
+fn cell(text: &str, row: usize, col: usize) -> Cell {
+    let mut cell = Cell::text(text);
+    cell.row = Some(row as u32);
+    cell.col = Some(col as u32);
+    cell
 }

@@ -1,12 +1,8 @@
-use crate::error::Result;
-use crate::model::{FileData, IngestOptions};
-use crate::utils;
+use crate::error::{IngestError, Result};
+use crate::parser::ParsedContent;
 
-pub fn parse(result: &mut FileData, _bytes: &[u8], options: &IngestOptions) -> Result<()> {
-    if options.extract_text {
-        let text = pdf_extract::extract_text(&result.path)?;
-        let text = utils::normalize_cjk_spacing(&text);
-        utils::attach_text(result, text, options);
-    }
-    Ok(())
+pub fn parse(_bytes: &[u8]) -> Result<ParsedContent> {
+    Err(IngestError::ParserUnavailable(
+        "PDF parsing requires a bytes-based parser before it can live in core".into(),
+    ))
 }

@@ -1,7 +1,6 @@
-use crate::model::FileKind;
+use crate::core::FileKind;
 use thiserror::Error;
 
-/// 错误类型
 #[derive(Debug, Error)]
 pub enum IngestError {
     #[error("io error: {0}")]
@@ -10,8 +9,8 @@ pub enum IngestError {
     #[error("unsupported or unknown file kind: {0:?}")]
     Unsupported(FileKind),
 
-    #[error("pdf extraction failed: {0}")]
-    Pdf(#[from] pdf_extract::OutputError),
+    #[error("{0}")]
+    ParserUnavailable(String),
 
     #[error("excel extraction failed: {0}")]
     Excel(#[from] calamine::Error),
@@ -27,12 +26,6 @@ pub enum IngestError {
 
     #[error("xml parse error: {0}")]
     Xml(#[from] quick_xml::Error),
-
-    #[error("image decode error: {0}")]
-    Image(#[from] image::ImageError),
-
-    #[error("pdf generation error: {0}")]
-    PdfGeneration(String),
 }
 
-pub type Result<T, E = IngestError> = core::result::Result<T, E>;
+pub type Result<T, E = IngestError> = std::result::Result<T, E>;
