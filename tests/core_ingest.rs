@@ -40,10 +40,10 @@ fn exports_complex_excel_core_preview() {
         serde_json::to_string_pretty(&preview).unwrap(),
     )
     .unwrap();
-    fs::write("output/t1.ai.txt", file_ingest::view::to_ai_text(&document)).unwrap();
+    fs::write("output/t1.ai.txt", document.to_ai_text()).unwrap();
     fs::write(
         "output/t1.compact.json",
-        serde_json::to_string_pretty(&file_ingest::view::to_compact_json(&document)).unwrap(),
+        serde_json::to_string_pretty(&document.to_compact_json()).unwrap(),
     )
     .unwrap();
 
@@ -62,11 +62,7 @@ fn exports_complex_word_core_preview() {
         serde_json::to_string_pretty(&document_preview(&document)).unwrap(),
     )
     .unwrap();
-    fs::write(
-        "output/complex_word.ai.txt",
-        file_ingest::view::to_ai_text(&document),
-    )
-    .unwrap();
+    fs::write("output/complex_word.ai.txt", document.to_ai_text()).unwrap();
 
     assert!(
         document
@@ -94,11 +90,7 @@ fn exports_pdf_core_preview() {
         serde_json::to_string_pretty(&document_preview(&document)).unwrap(),
     )
     .unwrap();
-    fs::write(
-        "output/zp.pdf.ai.txt",
-        file_ingest::view::to_ai_text(&document),
-    )
-    .unwrap();
+    fs::write("output/zp.pdf.ai.txt", document.to_ai_text()).unwrap();
 
     assert!(
         document
@@ -112,11 +104,10 @@ fn exports_pdf_core_preview() {
 fn renders_llm_views() {
     let document = file_ingest::ingest_bytes("data.csv", b"name,age\nAlice,30").unwrap();
 
-    let text = file_ingest::view::to_ai_text(&document);
+    let text = document.to_ai_text();
     assert!(text.contains("| name | age |"));
     assert!(text.contains("| Alice | 30 |"));
-
-    let compact = file_ingest::view::to_compact_json(&document);
+    let compact = document.to_compact_json();
     let compact_text = compact.to_string();
     assert!(compact_text.contains("Alice"));
     assert!(!compact_text.contains("row_span"));

@@ -3,6 +3,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use super::Block;
+use crate::view::ViewOptions;
 
 /// Supported source file kinds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,5 +48,21 @@ impl Document {
     pub fn push_block(&mut self, mut block: Block) {
         block.order = self.blocks.len();
         self.blocks.push(block);
+    }
+
+    pub fn to_ai_text(&self) -> String {
+        crate::view::to_ai_text(self)
+    }
+
+    pub fn to_ai_text_with_options(&self, options: &ViewOptions) -> String {
+        crate::view::to_ai_text_with_options(self, options)
+    }
+
+    pub fn to_compact_json(&self) -> Value {
+        crate::view::to_compact_json(self)
+    }
+
+    pub fn to_compact_json_with_options(&self, options: &ViewOptions) -> Value {
+        crate::view::to_compact_json_with_options(self, options)
     }
 }

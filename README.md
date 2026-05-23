@@ -50,6 +50,15 @@ for block in &document.blocks {
 # Ok::<(), file_ingest::IngestError>(())
 ```
 
+Render the parsed document for an LLM:
+
+```rust
+let document = file_ingest::ingest_bytes("report.csv", &bytes)?;
+let ai_text = document.to_ai_text();
+let compact_json = document.to_compact_json();
+# Ok::<(), file_ingest::IngestError>(())
+```
+
 If the caller already knows the file kind:
 
 ```rust

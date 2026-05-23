@@ -5,10 +5,11 @@ mod detector;
 mod error;
 mod parser;
 mod utils;
-pub mod view;
+mod view;
 
 pub use core::{Document, FileKind};
 pub use error::{IngestError, Result};
+pub use view::ViewOptions;
 
 /// Parse a file into the canonical core document.
 ///

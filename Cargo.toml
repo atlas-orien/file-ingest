@@ -1,6 +1,6 @@
 [package]
 name = "file-ingest"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Parse file bytes into a canonical document structure for AI and downstream processing."
 license = "MIT"
