@@ -5,6 +5,7 @@ mod detector;
 mod error;
 mod parser;
 mod utils;
+pub mod view;
 
 pub use core::{Document, FileKind};
 pub use error::{IngestError, Result};

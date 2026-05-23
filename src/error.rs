@@ -9,8 +9,8 @@ pub enum IngestError {
     #[error("unsupported or unknown file kind: {0:?}")]
     Unsupported(FileKind),
 
-    #[error("{0}")]
-    ParserUnavailable(String),
+    #[error("pdf extraction failed: {0}")]
+    Pdf(#[from] pdf_extract::OutputError),
 
     #[error("excel extraction failed: {0}")]
     Excel(#[from] calamine::Error),

@@ -40,8 +40,87 @@ fn exports_complex_excel_core_preview() {
         serde_json::to_string_pretty(&preview).unwrap(),
     )
     .unwrap();
+    fs::write("output/t1.ai.txt", file_ingest::view::to_ai_text(&document)).unwrap();
+    fs::write(
+        "output/t1.compact.json",
+        serde_json::to_string_pretty(&file_ingest::view::to_compact_json(&document)).unwrap(),
+    )
+    .unwrap();
 
     assert!(!document.blocks.is_empty());
+}
+
+#[test]
+fn exports_complex_word_core_preview() {
+    let input_path = Path::new("test_files/complex_word.docx");
+    let bytes = fs::read(input_path).unwrap();
+    let document = file_ingest::ingest_bytes("complex_word.docx", &bytes).unwrap();
+
+    fs::create_dir_all("output").unwrap();
+    fs::write(
+        "output/complex_word.core.preview.json",
+        serde_json::to_string_pretty(&document_preview(&document)).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "output/complex_word.ai.txt",
+        file_ingest::view::to_ai_text(&document),
+    )
+    .unwrap();
+
+    assert!(
+        document
+            .blocks
+            .iter()
+            .any(|block| matches!(block.content, BlockContent::Text(_)))
+    );
+    assert!(
+        document
+            .blocks
+            .iter()
+            .any(|block| matches!(block.content, BlockContent::Table(_)))
+    );
+}
+
+#[test]
+fn exports_pdf_core_preview() {
+    let input_path = Path::new("test_files/zp.pdf");
+    let bytes = fs::read(input_path).unwrap();
+    let document = file_ingest::ingest_bytes("zp.pdf", &bytes).unwrap();
+
+    fs::create_dir_all("output").unwrap();
+    fs::write(
+        "output/zp.pdf.core.preview.json",
+        serde_json::to_string_pretty(&document_preview(&document)).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "output/zp.pdf.ai.txt",
+        file_ingest::view::to_ai_text(&document),
+    )
+    .unwrap();
+
+    assert!(
+        document
+            .blocks
+            .iter()
+            .any(|block| matches!(block.content, BlockContent::Text(_)))
+    );
+}
+
+#[test]
+fn renders_llm_views() {
+    let document = file_ingest::ingest_bytes("data.csv", b"name,age\nAlice,30").unwrap();
+
+    let text = file_ingest::view::to_ai_text(&document);
+    assert!(text.contains("| name | age |"));
+    assert!(text.contains("| Alice | 30 |"));
+
+    let compact = file_ingest::view::to_compact_json(&document);
+    let compact_text = compact.to_string();
+    assert!(compact_text.contains("Alice"));
+    assert!(!compact_text.contains("row_span"));
+    assert!(!compact_text.contains("metadata"));
 }
 
 fn document_preview(document: &file_ingest::Document) -> Value {

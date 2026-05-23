@@ -1,8 +1,11 @@
-use crate::error::{IngestError, Result};
+use crate::error::Result;
 use crate::parser::ParsedContent;
+use crate::utils;
 
-pub fn parse(_bytes: &[u8]) -> Result<ParsedContent> {
-    Err(IngestError::ParserUnavailable(
-        "PDF parsing requires a bytes-based parser before it can live in core".into(),
-    ))
+pub fn parse(bytes: &[u8]) -> Result<ParsedContent> {
+    let text = pdf_extract::extract_text_from_mem(bytes)?;
+    Ok(ParsedContent {
+        blocks: utils::text_blocks(&text, "pdf", None),
+        ..Default::default()
+    })
 }
