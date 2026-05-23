@@ -29,3 +29,14 @@ impl Cell {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableContent {
+    pub table: Table,
+}
+
+impl TableContent {
+    pub fn new(table: Table) -> Self {
+        Self { table }
+    }
+}

@@ -37,3 +37,14 @@ impl ImageRef {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageContent {
+    pub image: ImageRef,
+}
+
+impl ImageContent {
+    pub fn new(image: ImageRef) -> Self {
+        Self { image }
+    }
+}

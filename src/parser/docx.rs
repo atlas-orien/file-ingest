@@ -24,9 +24,7 @@ pub fn parse(bytes: &[u8]) -> Result<ParsedContent> {
                         Block::new(
                             format!("docx-p-{block_index}"),
                             BlockRole::Paragraph,
-                            BlockContent::Text {
-                                text: text.to_string(),
-                            },
+                            BlockContent::text(text.to_string()),
                         )
                         .with_source(SourceLocation {
                             path: Some("word/document.xml".into()),
@@ -42,7 +40,7 @@ pub fn parse(bytes: &[u8]) -> Result<ParsedContent> {
                     Block::new(
                         format!("docx-table-{block_index}"),
                         BlockRole::Table,
-                        BlockContent::Table { table },
+                        BlockContent::table(table),
                     )
                     .with_source(SourceLocation {
                         path: Some("word/document.xml".into()),

@@ -20,9 +20,7 @@ pub fn text_blocks(text: &str, id_prefix: &str, page: Option<u32>) -> Vec<Block>
             Block::new(
                 format!("{id_prefix}-{index}"),
                 role,
-                BlockContent::Text {
-                    text: paragraph.to_string(),
-                },
+                BlockContent::text(paragraph.to_string()),
             )
             .with_source(SourceLocation {
                 page,

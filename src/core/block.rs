@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-use super::{ImageRef, SourceLocation, Table};
+use super::{BlockContent, SourceLocation};
 
 /// A single unit in source reading order.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,20 +43,10 @@ pub enum BlockRole {
     List,
     ListItem,
     Table,
+    Chart,
     Image,
     Caption,
     PageBreak,
     Sheet,
     Section,
-}
-
-/// Payload for a block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum BlockContent {
-    Text { text: String },
-    Table { table: Table },
-    Image { image: ImageRef },
-    Group { children: Vec<Block> },
-    Empty,
 }

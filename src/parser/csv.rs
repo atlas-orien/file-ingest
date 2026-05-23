@@ -36,7 +36,7 @@ pub fn parse(bytes: &[u8]) -> Result<ParsedContent> {
         blocks: vec![Block::new(
             "csv-table-0",
             BlockRole::Table,
-            BlockContent::Table { table },
+            BlockContent::table(table),
         )],
         ..Default::default()
     })
