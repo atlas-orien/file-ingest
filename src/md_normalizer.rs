@@ -66,12 +66,7 @@ pub fn normalize_markdown_with_timestamp(
         let mut lines = page.lines.clone();
 
         if options.enable_header_footer_cleanup {
-            lines = remove_header_footer_lines(
-                &lines,
-                page_no,
-                &header_footer_map,
-                options,
-            );
+            lines = remove_header_footer_lines(&lines, page_no, &header_footer_map, options);
         }
 
         if options.enable_line_merge {
@@ -124,10 +119,8 @@ pub fn normalize_file<P: AsRef<Path>, Q: AsRef<Path>>(
 }
 
 fn format_timestamp(ts: OffsetDateTime) -> String {
-    let format = format_description::parse(
-        "[year]-[month]-[day]T[hour]:[minute]:[second]Z",
-    )
-    .unwrap_or_else(|_| format_description::parse("[year]-[month]-[day]").unwrap());
+    let format = format_description::parse("[year]-[month]-[day]T[hour]:[minute]:[second]Z")
+        .unwrap_or_else(|_| format_description::parse("[year]-[month]-[day]").unwrap());
     ts.format(&format).unwrap_or_else(|_| ts.to_string())
 }
 
@@ -183,10 +176,7 @@ struct HeaderFooterMap {
     footer_counts: HashMap<String, usize>,
 }
 
-fn build_header_footer_map(
-    pages: &[Page],
-    options: &NormalizationOptions,
-) -> HeaderFooterMap {
+fn build_header_footer_map(pages: &[Page], options: &NormalizationOptions) -> HeaderFooterMap {
     let mut header_counts = HashMap::new();
     let mut footer_counts = HashMap::new();
 
@@ -281,10 +271,7 @@ fn is_page_number_line(line: &str) -> bool {
     if lower.starts_with("page ") && lower[5..].trim().chars().all(|c| c.is_ascii_digit()) {
         return true;
     }
-    let cleaned = trimmed
-        .trim_matches('-')
-        .trim_matches('—')
-        .trim();
+    let cleaned = trimmed.trim_matches('-').trim_matches('—').trim();
     cleaned.chars().all(|c| c.is_ascii_digit())
 }
 
@@ -358,12 +345,7 @@ fn normalize_blank_lines(lines: &[String]) -> Vec<String> {
         let prev_heading = is_heading_candidate(prev.trim());
         let next_heading = is_heading_candidate(next.trim());
 
-        if prev_non_empty
-            && next_non_empty
-            && !prev_terminal
-            && !prev_heading
-            && !next_heading
-        {
+        if prev_non_empty && next_non_empty && !prev_terminal && !prev_heading && !next_heading {
             continue;
         }
 
@@ -429,7 +411,12 @@ fn merge_two_lines(current: &str, next: &str) -> String {
     let current_trim = current.trim_end();
     let next_trim = next.trim_start();
 
-    if current_trim.ends_with('-') && next_trim.chars().next().is_some_and(|c| c.is_ascii_lowercase()) {
+    if current_trim.ends_with('-')
+        && next_trim
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_lowercase())
+    {
         let without_hyphen = current_trim.trim_end_matches('-');
         return format!("{}{}", without_hyphen, next_trim);
     }
@@ -479,9 +466,7 @@ fn classify_heading_level(line: &str) -> Option<u8> {
         return None;
     }
 
-    if trimmed.contains("目录")
-        || trimmed.to_ascii_uppercase().contains("CONTENTS")
-    {
+    if trimmed.contains("目录") || trimmed.to_ascii_uppercase().contains("CONTENTS") {
         return Some(2);
     }
 
@@ -545,11 +530,7 @@ fn numeric_heading_level(line: &str) -> Option<u8> {
         break;
     }
 
-    if dot_count == 0 {
-        Some(2)
-    } else {
-        Some(3)
-    }
+    if dot_count == 0 { Some(2) } else { Some(3) }
 }
 
 fn is_chinese_number_heading(line: &str) -> bool {
@@ -564,7 +545,10 @@ fn is_chinese_number_heading(line: &str) -> bool {
 }
 
 fn is_chinese_number(ch: char) -> bool {
-    matches!(ch, '一' | '二' | '三' | '四' | '五' | '六' | '七' | '八' | '九' | '十' | '百' | '千')
+    matches!(
+        ch,
+        '一' | '二' | '三' | '四' | '五' | '六' | '七' | '八' | '九' | '十' | '百' | '千'
+    )
 }
 
 fn is_short_title_like(line: &str) -> bool {
@@ -591,10 +575,7 @@ fn last_non_space_char(s: &str) -> Option<char> {
 }
 
 fn is_terminal_punct(ch: char) -> bool {
-    matches!(
-        ch,
-        '.' | '。' | '!' | '！' | '?' | '？' | ';' | '；' | '…'
-    )
+    matches!(ch, '.' | '。' | '!' | '！' | '?' | '？' | ';' | '；' | '…')
 }
 
 fn is_cjk(ch: char) -> bool {

@@ -31,10 +31,11 @@
 //! # Ok::<(), file_ingest::IngestError>(())
 //! ```
 
+pub mod core;
 mod detector;
 mod error;
-mod model;
 pub mod md_normalizer;
+mod model;
 mod ocr;
 mod options;
 mod parser;
@@ -46,7 +47,9 @@ mod vision;
 
 // 导出公共 API
 pub use error::{IngestError, Result};
-pub use md_normalizer::{NormalizationOptions, normalize_file, normalize_markdown, normalize_markdown_with_timestamp};
+pub use md_normalizer::{
+    NormalizationOptions, normalize_file, normalize_markdown, normalize_markdown_with_timestamp,
+};
 pub use model::{Block, Document, ImageBlock, ImageJob, ImageReference, TableData};
 pub use ocr::OcrEngine;
 pub use options::{ImageStrategy, Options};

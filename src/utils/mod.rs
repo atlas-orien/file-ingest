@@ -73,10 +73,7 @@ pub fn normalize_cjk_spacing(text: &str) -> String {
                 let prev_latin = is_latin_alnum(p);
                 let next_latin = is_latin_alnum(n);
 
-                if (prev_cjk && next_cjk)
-                    || (prev_cjk && next_latin)
-                    || (prev_latin && next_cjk)
-                {
+                if (prev_cjk && next_cjk) || (prev_cjk && next_latin) || (prev_latin && next_cjk) {
                     continue;
                 }
             }
