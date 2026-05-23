@@ -2,9 +2,15 @@
 name = "file-ingest"
 version = "0.1.0"
 edition = "2024"
+description = "Parse file bytes into a canonical document structure for AI and downstream processing."
+license = "MIT"
+repository = "https://github.com/atlas-orien/file-ingest"
+readme = "README.md"
+keywords = ["document", "parser", "ingest", "ai"]
+categories = ["parser-implementations", "text-processing"]
 
-[lib]
-crate-type = ["rlib"]
+# [lib]
+# crate-type = ["rlib"]
 
 [dependencies]
 calamine = "0.35"
